@@ -1,30 +1,36 @@
 const productSchema = require("../models/productSchema");
 
-// ====== GET Controller ======
+// ====== GET Controller: Get Products or a Single Product by productId ======
 const getProductsController = async (req, res) => {
   try {
     const { action, productid } = req.query;
 
-    if (action !== "product") {
-      return res.status(400).json({ message: "Invalid action parameter" });
+    // Validate 'action' query param
+    if (!action || action.toLowerCase() !== "product") {
+      return res.status(400).json({ message: "Invalid or missing 'action' parameter. Use action=product" });
     }
 
+    // If productid is provided, return single product
     if (productid) {
       const product = await productSchema
         .findOne({ productId: productid, active: true })
         .populate("category supplier unit warehouse");
+
       if (!product) {
-        return res.status(404).json({ message: "Product not found" });
+        return res.status(404).json({ message: `Product with ID '${productid}' not found.` });
       }
-      return res.status(200).json(product);
+
+      return res.status(200).json({ success: true, data: product });
     }
 
+    // Else, return all products
     const products = await productSchema
       .find({ active: true })
       .populate("category supplier unit warehouse");
-    res.status(200).json(products);
+
+    return res.status(200).json({ success: true, count: products.length, data: products });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
@@ -145,12 +151,10 @@ const deleteProductController = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Product deleted (inactivated) successfully",
-        data: deleted,
-      });
+    res.status(200).json({
+      message: "Product deleted (inactivated) successfully",
+      data: deleted,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
