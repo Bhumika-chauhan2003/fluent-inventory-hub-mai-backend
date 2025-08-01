@@ -13,6 +13,13 @@ const {
   deleteInvoiceController
 } = require('../controllers/invoiceController');
 
+const {
+  listEntitiesController,
+  createEntityController,
+  updateEntityController,
+  deleteEntityController
+} = require('../controllers/entityController');
+
 const getInventorySummaryController = require('../controllers/getInventorySummaryController');
 const getInventoryInsightsController = require('../controllers/getInventoryInsightsController');
 const getInventoryValueReportController = require('../controllers/getInventoryValueReportController');
@@ -44,6 +51,26 @@ router.post('/inventory-value', getInventoryValueReportController); // body: { a
 router.get('/stock-distribution', getStockDistributionController);  // ?action=stockDistribution
 router.get('/supplier-inventory', getSupplierInventoryValueController); // ?action=supplierInventoryValue
 router.get('/monthly-sales', getMonthlySalesReportController); // ?action=ChartReport&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+
+// GET: List records
+router.get('/:entity', listEntitiesController);
+
+// POST: Insert, Update, Delete based on action
+router.post('/:entity', async (req, res, next) => {
+  const { action } = req.body;
+
+  switch (action) {
+    case 'insert':
+      return createEntityController(req, res);
+    case 'update':
+      return updateEntityController(req, res);
+    case 'delete':
+      return deleteEntityController(req, res);
+    default:
+      return res.status(400).json({ message: 'Invalid action in request body' });
+  }
+});
+
 
 module.exports = router;
 
